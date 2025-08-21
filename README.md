@@ -83,30 +83,6 @@ Once the workflow completes successfully:
 └── README.md              # This file
 ```
 
-## Customization Options
-
-### Changing the Application
-
-To use a different container image:
-1. Edit `helm-chart/values.yaml`
-2. Change the `image.repository` and `image.tag` values
-3. Run the GitHub Actions workflow again
-
-### Scaling the Application
-
-To run more instances of your application:
-1. Edit `helm-chart/values.yaml`
-2. Increase the `replicaCount` value
-3. Run the GitHub Actions workflow again
-
-### Changing AWS Region
-
-To deploy in a different AWS region:
-1. Edit `.github/workflows/deploy.yml`
-2. Change the `aws-region` value in the AWS credentials step
-3. Edit `terraform/variables.tf` to update the default region
-4. Run the GitHub Actions workflow again
-
 ## Troubleshooting
 
 ### Common Issues
@@ -119,37 +95,6 @@ To deploy in a different AWS region:
 - Wait a few minutes for the Load Balancer to become ready
 - Check the workflow logs for the correct URL
 - Verify the Load Balancer was created in AWS Console
-
-**Pods Not Starting**
-- Check if you have sufficient resources in your AWS account
-- Verify the container image is accessible
-
-### Getting Help
-
-1. **Check Workflow Logs**: Go to Actions tab and click on the failed workflow run
-2. **AWS Console**: Check the EKS and EC2 services for resource status
-3. **Kubectl Commands**: Use the AWS CloudShell or configure kubectl locally to debug
-
-## Cost Considerations
-
-Running this infrastructure will incur AWS costs:
-- **EKS Cluster**: ~$73/month for the control plane
-- **EC2 Instances**: ~$30/month for t3.medium instances
-- **Load Balancer**: ~$18/month
-- **Data Transfer**: Variable based on usage
-
-**Important**: Remember to clean up resources when you're done testing to avoid ongoing charges.
-
-## Cleanup
-
-To avoid ongoing AWS charges, delete the infrastructure:
-
-1. Go to your GitHub repository
-2. In the Actions tab, you can create a destroy workflow, or
-3. Manually delete resources:
-   - Delete the EKS cluster from AWS Console
-   - Delete the VPC and associated resources
-   - Verify all resources are removed to avoid charges
 
 ## Technical Details
 
@@ -176,16 +121,3 @@ This project implements several security best practices:
 - IAM roles for service authentication
 - Security groups for network access control
 - Kubernetes RBAC for application permissions
-
-## Next Steps
-
-After successfully deploying this Hello World application, you might want to:
-1. Deploy your own custom application
-2. Add monitoring and logging
-3. Implement automated testing
-4. Set up multiple environments (dev, staging, production)
-5. Add SSL/TLS certificates for HTTPS
-
-## Support
-
-This project demonstrates modern DevOps practices and can serve as a foundation for more complex applications. The infrastructure and automation patterns shown here are production-ready and follow AWS and Kubernetes best practices.

@@ -2,25 +2,18 @@
 
 ## Overview
 
-Imagine you want to publish a website on the internet that can handle thousands of visitors without crashing, automatically recovers if something goes wrong, and can be updated without any downtime. This project shows you exactly how to do that using modern cloud computing practices.
+This project shows you how to publish a website on the internet that can handle thousands of visitors without crashing, automatically recovers if something goes wrong, and can be updated without any downtime, using modern cloud computing practices
 
-This repository is like a complete blueprint that automatically builds and manages a professional-grade web hosting environment on Amazon's cloud platform (AWS). While we use a simple "Hello World" webpage as an example, the same system can host complex business applications, e-commerce sites, or mobile app backends.
+This repository is a complete blueprint that automatically builds and manages a professional-grade web hosting environment on Amazon's cloud platform (AWS). While we use a simple "Hello World" webpage as an example, the same system can host complex business applications, e-commerce sites, or mobile app backends.
 
-The project demonstrates three crucial modern technology practices: **Infrastructure as Code** (building cloud resources using written instructions rather than clicking through web interfaces), **Continuous Integration and Deployment** (automatically testing and deploying code changes), and **Container Orchestration** (managing applications in lightweight, portable packages that can run anywhere).
+The project demonstrates three crucial modern technology practices: **Infrastructure as Code** , **Continuous Integration and Deployment** , and **Container Orchestration**.
 
 ## What This Project Does
 
-### Builds Cloud Infrastructure Automatically
-Think of this like having a robot architect that can build an entire data center for your website. Instead of manually creating servers, networks, and security settings through Amazon's web interface (which could take hours and is prone to human error), this project uses **Terraform** - a tool that reads written instructions and automatically creates all the necessary cloud infrastructure. It builds a complete, production-ready hosting environment in about 10-15 minutes, including multiple servers, load balancers, and security configurations.
-
-### Deploys and Manages Your Web Application
-Once the infrastructure is ready, the project automatically installs your web application using **Helm Charts** - think of these as pre-packaged installation instructions that ensure your application is deployed consistently every time. The example uses Nginx (a powerful web server) to serve a simple "Hello World" page, but this same system can deploy complex databases, e-commerce platforms, or mobile app backends.
-
-### Provides Bulletproof Automation
-The entire process is orchestrated by **GitHub Actions**, which acts like a smart assistant that watches your code repository. Whenever you make changes, it automatically runs a series of tests, builds your infrastructure, deploys your application, and even performs health checks to ensure everything is working correctly. This eliminates the manual work typically required to deploy applications and reduces the chance of human error.
-
-### Enables Professional-Grade Configuration Management
-The project uses industry-standard tools to manage configurations and deployments. Helm charts allow you to easily customize your application settings (like how many server instances to run, which version to deploy, or environment-specific configurations) without modifying the core application code. This separation makes it easy to deploy the same application across different environments (development, testing, production) with different settings.
+* **Builds the Cloud Environment:** Automatically constructs a professional-grade "playground" in the cloud (using **Terraform** to create an **Amazon EKS cluster**) where the application will live.
+* **Packages the Application:** Uses a standardized "instruction manual" (a **Helm chart**) to package the web application, making it easy to install and manage.
+* **Deploys the Web App:** Installs a simple **Nginx** web server into the new environment to display a "Hello World" page.
+* **Automates the Entire Process:** Uses an automated "assembly line" (**GitHub Actions**) that takes the blueprints and builds everything, from the cloud environment to the final application, with a single click.
 
 ## Prerequisites
 
@@ -32,21 +25,21 @@ Before you can deploy this application, you'll need:
 3. **AWS Credentials** - Access keys with administrative permissions to create cloud resources
 
 ### Technical Requirements
-4. **Sufficient AWS Service Limits** - Ensure your AWS account can create:
+1. **Sufficient AWS Service Limits** - Ensure your AWS account can create:
    - EKS clusters (check your region's EKS service limits)
    - EC2 instances (at least 2 t3.medium instances)
    - VPC resources (subnets, internet gateways, NAT gateways)
    - Elastic Load Balancers
-5. **Supported AWS Region** - This project works in most AWS regions, but verify EKS availability in your chosen region
+2. **Supported AWS Region** - This project works in most AWS regions, but verify EKS availability in your chosen region
 
 ### Financial Considerations
-6. **AWS Budget Awareness** - Running this infrastructure will cost approximately $120-150/month
-7. **Cost Monitoring Setup** - Consider setting up AWS billing alerts before deployment
-8. **Cleanup Plan** - Have a plan to destroy resources when testing is complete to avoid ongoing charges
+1. **AWS Budget Awareness** - Running this infrastructure will cost approximately $120-150/month
+2. **Cost Monitoring Setup** - Consider setting up AWS billing alerts before deployment
+3. **Cleanup Plan** - Have a plan to destroy resources when testing is complete to avoid ongoing charges
 
 ### Optional but Recommended
-9. **Basic Command Line Familiarity** - While not required for the basic deployment, understanding terminal/command prompt helps with troubleshooting
-10. **Git Knowledge** - Basic understanding of Git operations (clone, fork, commit) will help you customize the project
+1. **Basic Command Line Familiarity** - While not required for the basic deployment, understanding terminal/command prompt helps with troubleshooting
+2. **Git Knowledge** - Basic understanding of Git operations (clone, fork, commit) will help you customize the project
 
 ## Quick Start Guide
 

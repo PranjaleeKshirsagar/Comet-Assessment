@@ -1,0 +1,122 @@
+name: Deploy EKS Environment
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy and Test EKS Environment
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id:     ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region:            us-east-1
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.7.5
+
+      - name: Terraform Init
+        run: terraform -chdir=terraform init
+
+      - name: Terraform Apply
+        run: terraform -chdir=terraform apply -auto-approve
+
+      # 🔑 Capture cluster name and region dynamically from TF outputs (plain text via -raw)
+      - name: Export Cluster/Region from Terraform outputs
+        shell: bash
+        run: |
+          set -euo pipefail
+          CLUSTER_NAME="$(terraform -chdir=terraform output -raw cluster_name)"
+          REGION="$(terraform -chdir=terraform output -raw region)"
+          if [[ -z "$CLUSTER_NAME" || -z "$REGION" ]]; then
+            echo "ERROR: Missing Terraform outputs. Current outputs are:" >&2
+            terraform -chdir=terraform output || true
+            exit 1
+          fi
+          echo "CLUSTER_NAME=$CLUSTER_NAME" >> "$GITHUB_ENV"
+          echo "AWS_REGION=$REGION"       >> "$GITHUB_ENV"
+          echo "Resolved cluster: $CLUSTER_NAME in region: $REGION"
+
+      - name: Configure kubectl
+        run: aws eks update-kubeconfig --region "$AWS_REGION" --name "$CLUSTER_NAME"
+
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+
+      - name: Deploy Helm Chart
+        run: |
+          helm upgrade --install nginx-release ./helm-chart \
+            --namespace nginx-app --create-namespace
+
+      - name: Wait For & Smoke-Test Service
+        shell: bash
+        run: |
+          set -euo pipefail
+          NS="nginx-app"
+          SVC="nginx-release-nginx-service"
+          POD_SELECTOR="app=nginx"
+
+          echo "Waiting for Deployment rollout & pod readiness..."
+          kubectl rollout status deploy -n "$NS" -l "$POD_SELECTOR" --timeout=300s || true
+          kubectl wait --for=condition=Ready pod -n "$NS" -l "$POD_SELECTOR" --timeout=300s
+
+          echo "Waiting for LoadBalancer hostname..."
+          HOST=""
+          for i in {1..20}; do
+            HOST="$(kubectl get svc "$SVC" -n "$NS" -o jsonpath='{.status.loadBalancer.ingress[0].hostname}' 2>/dev/null || true)"
+            if [[ -n "$HOST" ]]; then
+              echo "LoadBalancer ready at: $HOST"
+              break
+            fi
+            echo "Still waiting for Load Balancer... ($i/20)"
+            sleep 15
+          done
+          if [[ -z "$HOST" ]]; then
+            echo "ERROR: LoadBalancer hostname never appeared."
+            kubectl get svc "$SVC" -n "$NS" -o yaml || true
+            exit 1
+          fi
+
+          echo "Checking Service endpoints..."
+          for i in {1..18}; do
+            EP_COUNT="$(kubectl get endpoints "$SVC" -n "$NS" -o jsonpath='{.subsets[*].addresses[*].ip}' | wc -w)"
+            if [[ "${EP_COUNT:-0}" -gt 0 ]]; then
+              echo "Found $EP_COUNT endpoints"
+              break
+            fi
+            echo "No endpoints yet... ($i/18)"
+            kubectl get endpoints "$SVC" -n "$NS" -o yaml | sed -n '1,80p' || true
+            sleep 10
+          done
+
+          echo "Smoke-testing http://$HOST ..."
+          for j in {1..12}; do
+            HTTP_CODE="$(curl -sS -m 5 -o /tmp/body.out -w "%{http_code}" "http://$HOST" || echo "000")"
+            if [[ "$HTTP_CODE" == "200" ]]; then
+              echo "✅ Smoke-test passed on attempt $j! Application is live at http://$HOST"
+              exit 0
+            fi
+            echo "Attempt $j: got HTTP $HTTP_CODE, retrying..."
+            if [[ $j -eq 1 ]]; then
+              echo "--- Response snippet ---"
+              sed -n '1,30p' /tmp/body.out || true
+              echo "------------------------"
+            fi
+            sleep 10
+          done
+
+          echo "❌ Smoke-test failed after 12 attempts."
+          echo "Dumping diagnostics..."
+          kubectl get pods -n "$NS" -o wide --show-labels || true
+          kubectl describe svc "$SVC" -n "$NS" || true
+          kubectl get endpoints "$SVC" -n "$NS" -o yaml || true
+          exit 1

@@ -1,0 +1,10 @@
+replicaCount: 2
+
+image:
+  repository: nginx
+  pullPolicy: IfNotPresent
+  tag: "1.25.1"
+
+service:
+  type: LoadBalancer  # Will be overridden to LoadBalancer by the pipeline
+  port: 80

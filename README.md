@@ -50,7 +50,7 @@ Before you can deploy this application, you'll need:
 Once the workflow completes successfully:
 1. Check the workflow logs for the application URL
 2. Look for a message like: `✅ Smoke-test passed! Application is live at http://your-loadbalancer-url`
-3. Open that URL in your browser to see your Hello World application
+3. Open that URL in your browser to see your Hello World application. Just Like below
    <img src="images/output.jpg" alt="Job Status Check" style="width: 50%; max-width: 50px; height: auto;"></br>
 
 ## What Gets Created

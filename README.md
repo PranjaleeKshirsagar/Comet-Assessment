@@ -123,3 +123,14 @@ This project implements several security best practices:
 - IAM roles for service authentication
 - Security groups for network access control
 - Kubernetes RBAC for application permissions
+
+---
+### ## How to Clean Up
+
+To avoid ongoing AWS costs, this project includes a separate, automated workflow to delete all the infrastructure that was created.
+
+1.  Go to the **"Actions"** tab of this repository.
+2.  On the left, select the **"Destroy EKS Environment"** workflow.
+3.  Click the **"Run workflow"** button to start the cleanup process.
+
+This will run `terraform destroy` and safely remove all the AWS resources.
